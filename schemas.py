@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict
+from typing import Optional
 
 # Modelo base para uma entrega, usado como estrutura comum
 class EntregaBase(BaseModel):
@@ -11,7 +12,7 @@ class EntregaCreate(EntregaBase):
 
 # Modelo usado para atualização de uma entrega (ex: atualização de status)
 class EntregaUpdate(BaseModel):
-    status: str | None = None
+    status: Optional[str] = None
 
 # Modelo de saída (resposta da API) com todos os campos que serão retornados
 class EntregaOut(EntregaBase):

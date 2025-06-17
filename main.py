@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, status, Response
 from sqlalchemy.orm import Session
 import models,schemas
 from database import SessionLocal, engine, Base
+from utils import formatar_status, formatar_destinatario, formatar_endereco
 
 # Cria as tabelas no banco de dados com base nos modelos (caso ainda não existam)
 Base.metadata.create_all(bind=engine)
@@ -17,15 +18,18 @@ def get_db():
     finally:
         db.close() # Fecha a sessão após o uso
 
-
 # Rota para criar uma nova entrega
-@app.post("/entregas", response_model=schemas.EntregaOut, status_code=status.HTTP_201_CREATED)
+@app.post("/entregas", response_model=schemas.EntregaOut, status_code=201)
 def criar_entrega(entrega: schemas.EntregaCreate, db: Session = Depends(get_db)):
-    db_entrega = models.Entrega(**entrega.model_dump())
-    db.add(db_entrega)
+    nova_entrega = models.Entrega(
+        destinatario=formatar_destinatario(entrega.destinatario),
+        endereco=formatar_endereco(entrega.endereco),
+        status=formatar_status("pendente")
+    )
+    db.add(nova_entrega)
     db.commit()
-    db.refresh(db_entrega)
-    return db_entrega
+    db.refresh(nova_entrega)
+    return nova_entrega
 
 # Rota para listar todas as entregas
 @app.get("/entregas/", response_model=list[schemas.EntregaOut])
@@ -42,11 +46,14 @@ def buscar_entrega(entrega_id: int, db: Session = Depends(get_db)):
 
 # Rota para atualizar o status de uma entrega
 @app.put("/entregas/{entrega_id}", response_model=schemas.EntregaOut)
-def atualizar_status(entrega_id: int, dados: schemas.EntregaUpdate, db: Session = Depends(get_db)):
+def atualizar_entrega(entrega_id: int, dados: schemas.EntregaUpdate, db: Session = Depends(get_db)):
     entrega = db.get(models.Entrega, entrega_id)
     if not entrega:
         raise HTTPException(status_code=404, detail="Entrega não encontrada")
-    entrega.status = dados.status
+
+    if dados.status is not None:
+        entrega.status = formatar_status(dados.status)
+
     db.commit()
     db.refresh(entrega)
     return entrega

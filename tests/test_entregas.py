@@ -18,7 +18,7 @@ def test_criar_entrega():
     assert response.status_code == 201
     data = response.json()
     assert data["destinatario"] == "João Pedro"
-    assert data["endereco"] == "Rua das Laranjeiras, 456"
+    assert data["endereco"] == "Rua Das Laranjeiras, 456"
     assert data["status"] == "Pendente"
 
 def test_criar_entrega_dados_invalidos():
@@ -42,7 +42,7 @@ def test_atualizar_entrega():
     response = client.put(f"/entregas/{entrega_id}", json={"status": "Em rota"})
     assert response.status_code == 200
     updated = response.json()
-    assert updated["status"] == "Em rota"
+    assert updated["status"] == "Em Rota"
 
     
 def test_atualizar_entrega_inexistente():
